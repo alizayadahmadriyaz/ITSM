@@ -13,14 +13,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const onboardingRoutes = require("./routes/onboarding");
+const isAuthenticated = require("./middlewares/isAuthenticated");
+const checkOnboarding = require("./middlewares/checkOnboarding");
 
 // Session for passport (needed for OAuth)
-app.use(session({ secret: "keyboardcat", resave: false, saveUninitialized: false }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || "supersecret", 
+  resave: false,
+  saveUninitialized: false
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/api/onboarding", isAuthenticated, onboardingRoutes);
+
+// Protected dashboard
+app.get("/api/dashboard", isAuthenticated, checkOnboarding, (req, res) => {
+  res.json({ message: `Welcome ${req.user.displayName}, you finished onboarding!` });
+});
 
 // Connect DB
 console.log(process.env.MONGO_URI)
