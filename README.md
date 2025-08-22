@@ -1,3 +1,7 @@
+
+## Starting Flow
+
+```bash
 Starting phase Flow
 
 [User Signup/Login] 
@@ -18,3 +22,4 @@ Starting phase Flow
          └────→ [Tickets (DB)] ←─────┘
                         ↓
                 [Intent Analysis Job]
+                ```
