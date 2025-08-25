@@ -56,7 +56,6 @@ router.post("/complete", async (req, res) => {
     if (!onboarding) {
       return res.status(404).json({ error: "Onboarding not started" });
     }
-
     res.json({ message: "Onboarding completed", onboarding });
   } catch (err) {
     res.status(500).json({ error: "Failed to complete onboarding" });

@@ -1,45 +1,57 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-
-// console.log("process.env.GOOGLE_CLIENT_SECRET  ",process.env.GOOGLE_CLIENT_SECRET);
-const passport = require("passport");
-require("./config/passport");
 const session = require("express-session");
-const authRoutes = require("./routes/auth");
 const cors = require("cors");
+const passport = require("passport");
+require("./config/passport"); // your existing Google OAuth (session-based)
 
+const isAuthenticated = require("./middlewares/isAuthenticated");
+
+// routes
+const authRoutes = require("./routes/auth"); // your existing auth
+const ticketDataRoutes = require("./routes/ticketData.routes");
+const processDocRoutes = require("./routes/processDoc.routes");
+const intentRoutes = require("./routes/intent.routes");
+const jira = require("./routes/jira");
+const zendesk = require("./routes/zendesk");
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-const onboardingRoutes = require("./routes/onboarding");
-const isAuthenticated = require("./middlewares/isAuthenticated");
-const checkOnboarding = require("./middlewares/checkOnboarding");
-
-// Session for passport (needed for OAuth)
-app.use(session({
-  secret: process.env.SESSION_SECRET || "supersecret", 
-  resave: false,
-  saveUninitialized: false
-}));
+// sessions for passport
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "supersecret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// auth + feature routes
 app.use("/auth", authRoutes);
-app.use("/api/onboarding", isAuthenticated, onboardingRoutes);
+app.use("/api/ticket-data", isAuthenticated,ticketDataRoutes);
+app.use("/api/process-docs", isAuthenticated, processDocRoutes);
+app.use("/api/intents", isAuthenticated, intentRoutes); // records only; analysis handled elsewhere
 
-// Protected dashboard
-app.get("/api/dashboard", isAuthenticated, checkOnboarding, (req, res) => {
-  res.json({ message: `Welcome ${req.user.displayName}, you finished onboarding!` });
+// optional: a protected check route
+app.get("/api/me", isAuthenticated, (req, res) => {
+  res.json({ user: req.user });
 });
 
-// Connect DB
-console.log(process.env.MONGO_URI)
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+app.use("/api",jira)
+app.use("/api/zendesk",zendesk)
+
+// db + start
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB Connected");
-    app.listen(5000, () => console.log("Server running on http://localhost:5000"));
+    console.log("✅ MongoDB connected");
+    const port = process.env.PORT || 5000;
+    app.listen(port, () =>
+      console.log(`🚀 Server running http://localhost:${port}`)
+    );
   })
-  .catch(err => console.error(err));
+  .catch((e) => console.error("Mongo error:", e));
