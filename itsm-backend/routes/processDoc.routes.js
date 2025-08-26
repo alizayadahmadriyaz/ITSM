@@ -2,7 +2,7 @@ const router = require("express").Router();
 const ProcessDoc = require("../models/ProcessDoc");
 const TicketData = require("../models/TicketData");
 const uploadToS3 = require("../middlewares/uploadS3");
-
+const mongoose = require("mongoose");
 // Upload a process doc linked to a ticketDataId
 // form-data: file=<file>, ticketDataId=<id>
 router.post("/", uploadToS3("process-docs").single("file"), async (req, res) => {
@@ -12,9 +12,10 @@ router.post("/", uploadToS3("process-docs").single("file"), async (req, res) => 
     const parent = await TicketData.findOne({ _id: ticketDataId, userId: req.user._id });
     if (!parent) return res.status(404).json({ message: "TicketData not found" });
     if (!req.file) return res.status(400).json({ message: "file is required" });
-
+    console.log("ticket info ",req.body);
+    const tickid = new mongoose.Types.ObjectId(ticketDataId)
     const doc = await ProcessDoc.create({
-      ticketDataId,
+      proceeDataId:tickid,
       fileName: req.file.originalname,
       s3Key: req.file.key,
       status: "uploaded",

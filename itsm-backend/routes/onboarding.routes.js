@@ -1,9 +1,10 @@
 const express = require("express");
 const Onboarding = require("../models/Onboarding");
 const router = express.Router();
+const isAuthenticated = require("../middlewares/isAuthenticated");
 
 // ✅ Start onboarding (if not exists, create)
-router.post("/start", async (req, res) => {
+router.post("/start",isAuthenticated, async (req, res) => {
   try {
     let onboarding = await Onboarding.findOne({ userId: req.user._id });
 
@@ -19,7 +20,7 @@ router.post("/start", async (req, res) => {
 });
 
 // ✅ Save onboarding step
-router.post("/step", async (req, res) => {
+router.post("/step",isAuthenticated, async (req, res) => {
   try {
     const { step, data } = req.body;
     let onboarding = await Onboarding.findOne({ userId: req.user._id });
@@ -45,7 +46,7 @@ router.post("/step", async (req, res) => {
 });
 
 // ✅ Complete onboarding
-router.post("/complete", async (req, res) => {
+router.post("/complete",isAuthenticated, async (req, res) => {
   try {
     const onboarding = await Onboarding.findOneAndUpdate(
       { userId: req.user._id },

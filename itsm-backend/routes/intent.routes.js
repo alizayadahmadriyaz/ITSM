@@ -1,35 +1,29 @@
-const router = require("express").Router();
-const Intent = require("../models/Intent");
-const ProcessDoc = require("../models/ProcessDoc");
+// routes/intent.js
+const express = require("express");
+const { getJsonFromS3, getFileFromS3 } = require("../utils/s3Upload");
+const TicketData = require("../models/TicketData");
+const DocData = require("../models/ProcessDoc");
+const isAuthenticated = require("../middlewares/isAuthenticated");
 
-// Create intents for a processDoc (called by your analyzer or your backend after analysis)
-router.post("/", async (req, res) => {
-  const { processDocId, intents } = req.body;
-  if (!processDocId || !Array.isArray(intents)) {
-    return res.status(400).json({ message: "processDocId and intents[] required" });
+const router = express.Router();
+
+router.post("/classify", isAuthenticated, async (req, res) => {
+  try {
+    // 1. Latest ticket data
+    const ticketDoc = await TicketData.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
+    const tickets = ticketDoc ? await getJsonFromS3(ticketDoc.s3Key) : null;
+
+    // 2. Latest ITSM doc
+    const docFile = await DocData.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
+    const doc = docFile ? await getFileFromS3(docFile.s3Key) : null;
+
+    // 3. Run classification (your ML/NLP pipeline)
+    // const results = await classifyIntents(tickets, doc);
+
+    res.json({ message: "Classification complete" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to classify", error: err.message });
   }
-
-  const proc = await ProcessDoc.findById(processDocId);
-  if (!proc) return res.status(404).json({ message: "ProcessDoc not found" });
-
-  const docs = intents.map((i) => ({
-    processDocId,
-    name: i.name,
-    description: i.description,
-    confidence: i.confidence,
-    meta: i.meta || null,
-  }));
-
-  const created = await Intent.insertMany(docs);
-  res.json({ message: "Intents saved", count: created.length, intents: created });
-});
-
-// List intents for a processDoc
-router.get("/", async (req, res) => {
-  const { processDocId } = req.query;
-  const q = processDocId ? { processDocId } : {};
-  const items = await Intent.find(q).sort({ createdAt: -1 });
-  res.json(items);
 });
 
 module.exports = router;

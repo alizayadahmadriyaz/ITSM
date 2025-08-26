@@ -15,6 +15,10 @@ const processDocRoutes = require("./routes/processDoc.routes");
 const intentRoutes = require("./routes/intent.routes");
 const jira = require("./routes/jira");
 const zendesk = require("./routes/zendesk");
+const onboarding=require("./routes/onboarding.routes")
+const testing=require("./routes/testing")
+const doc_upload=require("./routes/processDoc.routes")
+
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -27,6 +31,7 @@ app.use(
     saveUninitialized: false,
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -40,9 +45,13 @@ app.use("/api/intents", isAuthenticated, intentRoutes); // records only; analysi
 app.get("/api/me", isAuthenticated, (req, res) => {
   res.json({ user: req.user });
 });
-
+app.use("/api/onboarding",onboarding)
 app.use("/api",jira)
 app.use("/api/zendesk",zendesk)
+
+app.use("/api/testing",testing)
+
+app.use("/api/upload_doc",isAuthenticated,doc_upload)
 
 // db + start
 mongoose

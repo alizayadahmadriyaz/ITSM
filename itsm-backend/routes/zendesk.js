@@ -3,7 +3,7 @@ const express = require("express");
 const axios = require("axios");
 const ZendeskIntegration = require("../models/ZendeskIntegration");
 const TicketData = require("../models/TicketData");
-// const { uploadJsonToS3 } = require("../utils/s3Upload");
+const { uploadJsonToS3 } = require("../utils/s3Upload");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 
 const router = express.Router();
@@ -63,7 +63,7 @@ router.post("/tickets/store", isAuthenticated, async (req, res) => {
 
     // Upload raw tickets JSON to S3
     const s3Key = `zendesk/${req.user._id}/tickets-${Date.now()}.json`;
-    // await uploadJsonToS3(s3Key, data);
+    await uploadJsonToS3(s3Key, data);
 
     // Save reference in DB
     const doc = await TicketData.create({
@@ -75,6 +75,7 @@ router.post("/tickets/store", isAuthenticated, async (req, res) => {
 
     res.json({ message: "Tickets fetched & stored", ticketData: doc });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Failed to fetch and store tickets", error: err.message });
   }
 });
