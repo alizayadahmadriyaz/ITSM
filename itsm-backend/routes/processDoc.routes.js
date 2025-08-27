@@ -14,6 +14,8 @@ router.post("/", uploadToS3("process-docs").single("file"), async (req, res) => 
     if (!req.file) return res.status(400).json({ message: "file is required" });
     console.log("ticket info ",req.body);
     const tickid = new mongoose.Types.ObjectId(ticketDataId)
+    const file=req.file;
+    const ext = file.originalname.split(".").pop().toLowerCase()
     const doc = await ProcessDoc.create({
       proceeDataId:tickid,
       fileName: req.file.originalname,
@@ -25,6 +27,7 @@ router.post("/", uploadToS3("process-docs").single("file"), async (req, res) => 
     res.json({
       message: "Process doc uploaded",
       processDoc: doc,
+      filetype:ext,
       next: "Trigger external analysis to generate intents",
     });
   } catch (e) {

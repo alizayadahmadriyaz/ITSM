@@ -70,6 +70,7 @@ router.post("/tickets/store", isAuthenticated, async (req, res) => {
       userId: req.user._id,
       toolName: "Zendesk",
       s3Key,
+      filetype:"json",
       status: "fetched"
     });
 

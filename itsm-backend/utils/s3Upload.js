@@ -3,6 +3,8 @@ const { S3Client, PutObjectCommand,GetObjectCommand } = require("@aws-sdk/client
 
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
+const { parse } = require("csv-parse/sync");
+
 const s3 = new S3Client({
   region: process.env.AWS_REGION, // e.g. "us-east-1"
   credentials: {
@@ -69,7 +71,23 @@ async function getFileFromS3(key) {
   return streamToBuffer(response.Body); // return raw buffer
 }
 
-module.exports = { uploadJsonToS3, getJsonFromS3, getFileFromS3 };
+async function getCsvFromS3(key) {
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_S3_BUCKET,
+    Key: key,
+  });
+  const response = await s3.send(command);
+  const body = await streamToBuffer(response.Body);
+
+  const records = parse(body.toString("utf-8"), {
+    columns: true,     // use headers as keys
+    skip_empty_lines: true
+  });
+
+  return records; // array of objects
+}
+
+module.exports = { uploadJsonToS3, getJsonFromS3, getFileFromS3,getCsvFromS3 };
 
 
 

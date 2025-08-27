@@ -6,6 +6,7 @@ const ticketDataSchema = new mongoose.Schema({
   projectId: { type: String },
   queueId: { type: String },
   s3Key: { type: String },       // raw JSON stored in S3
+  ext:{type: String,require:true},
   status: { type: String, enum: ["uploaded", "fetched"], default: "fetched" },
   createdAt: { type: Date, default: Date.now }
 });

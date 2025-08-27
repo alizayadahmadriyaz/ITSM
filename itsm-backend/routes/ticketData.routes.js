@@ -11,11 +11,14 @@ router.post("/", uploadToS3("ticket-data").single("file"), async (req, res) => {
     if (!toolName) return res.status(400).json({ message: "toolName is required" });
     if (!req.file) return res.status(400).json({ message: "file is required" });
 
+    const file=req.file;
+    const ext = file.originalname.split(".").pop().toLowerCase()
     const doc = await TicketData.create({
       userId: req.user._id,
       toolName,
       fileName: req.file.originalname,
       s3Key: req.file.key,
+      filetype:ext,
       status: "uploaded",
       parsedData: null, // will be filled after external analyzer
     });
@@ -23,6 +26,7 @@ router.post("/", uploadToS3("ticket-data").single("file"), async (req, res) => {
     res.json({
       message: "Ticket data uploaded",
       ticketData: doc,
+      filetype:ext,
       next: "Upload related process docs for this ticketDataId",
     });
   } catch (e) {
