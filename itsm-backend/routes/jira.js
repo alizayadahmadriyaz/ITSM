@@ -84,6 +84,7 @@ router.get("/:serviceDeskId/queue/:queueId/issues/jira", isAuthenticated, async 
       projectId: serviceDeskId,
       queueId,
       s3Key,
+      filetype:"json",
       status: "fetched"
     });
 

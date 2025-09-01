@@ -62,15 +62,6 @@ async function getJsonFromS3(key) {
   return JSON.parse(body.toString("utf-8"));
 }
 
-async function getFileFromS3(key) {
-  const command = new GetObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET,
-    Key: key,
-  });
-  const response = await s3.send(command);
-  return streamToBuffer(response.Body); // return raw buffer
-}
-
 async function getCsvFromS3(key) {
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET,
@@ -87,7 +78,7 @@ async function getCsvFromS3(key) {
   return records; // array of objects
 }
 
-module.exports = { uploadJsonToS3, getJsonFromS3, getFileFromS3,getCsvFromS3 };
+module.exports = { uploadJsonToS3, getJsonFromS3, getCsvFromS3 };
 
 
 

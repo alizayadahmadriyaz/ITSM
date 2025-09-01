@@ -45,7 +45,7 @@ router.post("/:id/fetch-tickets", isAuthenticated, async (req, res) => {
     const tool = await ToolIntegration.findById(req.params.id);
     if (!tool) return res.status(404).json({ message: "Tool not found" });
 
-    if (tool.toolName === "Zendesk") {
+    if (tool.toolName === "jira") {
       // TODO: call Zendesk API with tool.credentials
       // Example: axios.get(`https://${tool.credentials.subdomain}.zendesk.com/api/v2/tickets.json`, { headers: { Authorization: `Bearer ${tool.credentials.apiKey}` } })
       // Save tickets in TicketData model
