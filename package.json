@@ -1,0 +1,29 @@
+{
+  "name": "new_result",
+  "version": "1.0.0",
+  "type": "module",         
+  "description": "...",
+  "main": "llm.js",
+
+  "dependencies": {
+    "groq": "^4.6.1",
+    "groq-sdk": "^0.32.0"
+  },
+
+  "scripts": {
+    "start": "node llm.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alizayadahmadriyaz/ITSM.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alizayadahmadriyaz/ITSM/issues"
+  },
+  "homepage": "https://github.com/alizayadahmadriyaz/ITSM#readme"
+}
