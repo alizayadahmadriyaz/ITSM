@@ -7,12 +7,15 @@ const uploadToS3 = require("../middlewares/uploadS3");
 router.post("/", uploadToS3("ticket-data").single("file"), async (req, res) => {
   try {
     const { toolName } = req.body;
-    console.log("file  ",req.file);
+    // console.log("file  ",req.file);
     if (!toolName) return res.status(400).json({ message: "toolName is required" });
     if (!req.file) return res.status(400).json({ message: "file is required" });
 
     const file=req.file;
+    
     const ext = file.originalname.split(".").pop().toLowerCase()
+    // console.log(ext);
+    console.log("user_id  ",req.user._id);
     const doc = await TicketData.create({
       userId: req.user._id,
       toolName,

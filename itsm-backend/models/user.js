@@ -5,6 +5,14 @@ const userSchema = new mongoose.Schema({
   name: String,
   provider: { type: String, enum: ["google", "microsoft", "apple", "local"], required: true },
   providerId: String,
+  jira: {
+    accessToken: String,
+    refreshToken: String,
+    cloudId: String,
+    expiresAt: Date,
+    projects: [String], // store projectKeys user has subscribed to
+  },
+
   createdAt: { type: Date, default: Date.now }
 });
 

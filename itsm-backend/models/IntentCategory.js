@@ -2,7 +2,9 @@ const mongoose = require("mongoose");
 
 const intentCategorySchema = new mongoose.Schema(
   {
-    processDocId: { type: mongoose.Schema.Types.ObjectId, ref: "ProcessDoc", required: true },
+    processDocId: { type: mongoose.Schema.Types.ObjectId, ref: "ProcessDoc" }, // optional
+    ticketDataId: { type: mongoose.Schema.Types.ObjectId, ref: "TicketData" }, // optional
+
     name: { type: String, required: true },  // category name
     confidence: Number,
     tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }], // all tickets in this category
@@ -13,7 +15,7 @@ const intentCategorySchema = new mongoose.Schema(
     },
     priorityBreakdown: {
       high: { type: Number, default: 0 },
-      med: { type: Number, default: 0 },
+      normal: { type: Number, default: 0 },
       low: { type: Number, default: 0 },
     },
     spamCount: { type: Number, default: 0 },
@@ -22,6 +24,15 @@ const intentCategorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-intentCategorySchema.index({ processDocId: 1, name: 1 });
+intentCategorySchema.index(
+  { processDocId: 1, name: 1 },
+  { unique: true, sparse: true }
+);
+intentCategorySchema.index(
+  { ticketDataId: 1, name: 1 },
+  { unique: true, sparse: true }
+);
+
 
 module.exports = mongoose.model("IntentCategory", intentCategorySchema);
+
