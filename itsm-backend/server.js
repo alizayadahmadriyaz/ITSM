@@ -18,9 +18,15 @@ const zendesk = require("./routes/zendesk");
 const onboarding=require("./routes/onboarding.routes")
 const testing=require("./routes/testing")
 const doc_upload=require("./routes/processDoc.routes")
+const dashboard=require("./routes/dashboard")
+const webhk_jira=require("./routes/webhook_jira")
+// const webhk=require("./routes/listner")
 
 const app = express();
-app.use(cors({ origin: true, credentials: true }));
+
+
+
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 
 // sessions for passport
@@ -29,6 +35,11 @@ app.use(
     secret: process.env.SESSION_SECRET || "supersecret",
     resave: false,
     saveUninitialized: false,
+      cookie: {
+    httpOnly: true,
+    secure: false,   // true if using https
+    sameSite: "lax",
+  }
   })
 );
 
@@ -36,13 +47,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // auth + feature routes
-app.use("/auth", authRoutes);
-app.use("/api/ticket-data", isAuthenticated,ticketDataRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/ticket-data",isAuthenticated,ticketDataRoutes);
 app.use("/api/process-docs", isAuthenticated, processDocRoutes);
 app.use("/api/intents", isAuthenticated, intentRoutes); // records only; analysis handled elsewhere
 
 // optional: a protected check route
-app.get("/api/me", isAuthenticated, (req, res) => {
+app.get("/api/me", (req, res) => {
   res.json({ user: req.user });
 });
 app.use("/api/onboarding",onboarding)
@@ -52,7 +63,8 @@ app.use("/api/zendesk",zendesk)
 app.use("/api/testing",testing)
 
 app.use("/api/upload_doc",isAuthenticated,doc_upload)
-
+app.use("/api/dashboard",isAuthenticated,dashboard)
+app.use("/api/jira", webhk_jira);
 // db + start
 mongoose
   .connect(process.env.MONGO_URI)

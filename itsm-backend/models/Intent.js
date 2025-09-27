@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const intentSchema = new mongoose.Schema(
   {
-    processDocId: { type: mongoose.Schema.Types.ObjectId, ref: "ProcessDoc", required: true },
+    processDocId: { type: mongoose.Schema.Types.ObjectId, ref: "ProcessDoc", },
     ticketDataId: { type: mongoose.Schema.Types.ObjectId, ref: "TicketData", required: true },
     name: { type: String, required: true },
     description: String,

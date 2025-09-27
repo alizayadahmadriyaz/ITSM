@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const ticketDataSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  toolName: { type: String, enum: ["Zendesk", "Jira", "ServiceNow"], required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  toolName: { type: String, enum: ["Zendesk", "Jira", "ServiceNow"] },
   projectId: { type: String },
   queueId: { type: String },
   s3Key: { type: String },       // raw JSON stored in S3

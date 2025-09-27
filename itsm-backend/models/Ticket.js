@@ -7,7 +7,7 @@ const TicketSchema = new mongoose.Schema({
   text: { type: String, required: true },  // ticket description or message
   category: { type: String },              // classified intent
   sentiment: { type: String, enum: ["Frustrated", "Neutral", "Satisfied"] },
-  priority: { type: String, enum: ["High", "Med", "Low"] },
+  priority: { type: String, enum: ["High", "Normal", "Low"] },
   isSpam: { type: Boolean, default: false },
   tags: [String],
   confidence: { type: Number, default: 0 },
