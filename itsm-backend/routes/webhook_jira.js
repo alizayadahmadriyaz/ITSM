@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const User = require("../models/user");
+// const requestJira =require("@forge/bridge");
 
 const router = express.Router();
 
@@ -59,19 +60,20 @@ router.get("/jira/callback", async (req, res) => {
   }
 });
 
-// Step 3: Register webhook for a project
-router.post("/jira/webhook/register", isAuthenticated, async (req, res) => {
-  const projectKey = req.body.projectKey;
-  const user = await User.findById(req.user._id);
-    console.log("proj ",projectKey);
+router.post('/jira/webhook/register', isAuthenticated, async (req, res) => {
+  const { projectKey } = req.body;
+  const user           = await User.findById(req.user._id);
+
   try {
-    const webhookRes = await axios.post(
+    /* 1. CREATE a new webhook */
+    const createRes = await axios.post(
       `https://api.atlassian.com/ex/jira/${user.jira.cloudId}/rest/api/3/webhook`,
       {
-        url: `https://webhook.site/722824e2-6364-4a2e-b547-16dde298cfa9`,
+        url: 'https://webhook.site/722824e2-6364-4a2e-b547-16dde298cfa9',
         webhooks: [
           {
-            events: ["jira:issue_created"],
+            name: `Webhook for ${projectKey}`,
+            events:    ['jira:issue_created'],
             jqlFilter: `project = ${projectKey}`
           }
         ]
@@ -79,25 +81,58 @@ router.post("/jira/webhook/register", isAuthenticated, async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${user.jira.accessToken}`,
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json'
         }
       }
     );
 
-    // Save projectKey in user profile
-    console.log("10000000000");
-    if (!user.jira.projects.includes(projectKey)) {
-      user.jira.projects.push(projectKey);
-      await user.save();
+    // 🔑 Jira doesn’t return createdWebhookIds. Need to fetch the list.
+    const listRes = await axios.get(
+      `https://api.atlassian.com/ex/jira/${user.jira.cloudId}/rest/api/3/webhook`,
+      {
+        headers: {
+          Authorization: `Bearer ${user.jira.accessToken}`
+        }
+      }
+    );
+
+    // Grab the latest webhook (last in array)
+    const values = listRes.data.values || [];
+    if (!values.length) {
+      return res.status(500).json({ error: 'No webhook found after creation' });
     }
 
-    res.json(webhookRes.data);
+    const latest = values[values.length - 1];
+    const newId = latest.id;
+    const expiration = latest.expirationDate;
+
+    /* 2. STORE the new ID + expiry */
+    console.log("1000000")
+    if (!user.jira.projects.includes(projectKey)) {
+        user.jira.projects.push(projectKey);
+    }
+    console.log("1000000")
+    user.jira.webhooks.push({ id: newId, projectKey, expiration });
+    console.log("1000000")
+    await user.save();
+
+    /* 3. EXTEND every webhook this user has (old + new) */
+    const allIds = user.jira.webhooks.map(w => w.id);
+    console.log("iddd ",allIds)
+    await axios.put(
+        `https://api.atlassian.com/ex/jira/${user.jira.cloudId}/rest/api/3/webhook/refresh`,
+        { webhookIds: allIds },
+        { headers: { Authorization: `Bearer ${user.jira.accessToken}`, 'Content-Type': 'application/json' } }
+        );
+
+    res.status(200).send("ok");
   } catch (err) {
-    console.error("HTTP status:", err.response?.status);
-    console.error("Response body:", JSON.stringify(err.response?.data, null, 2));
-    res.status(500).send("❌ Webhook registration failed");
+    console.error('HTTP status:', err.response?.status);
+    console.error('Body:', JSON.stringify(err.response?.data, null, 2));
+    res.status(500).send('❌ Webhook registration failed');
   }
 });
+
 
 // Step 4: Webhook receiver
 router.post("/webhook", async (req, res) => {

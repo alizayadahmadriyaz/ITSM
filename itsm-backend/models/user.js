@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 
+const WebhookSchema = new mongoose.Schema({
+  id:         Number,    // 68, 69, …
+  projectKey: String,    // DEMO, ABC, …
+  expiration: Date       // ISO string from Jira
+});
+
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   name: String,
@@ -11,6 +17,7 @@ const userSchema = new mongoose.Schema({
     cloudId: String,
     expiresAt: Date,
     projects: [String], // store projectKeys user has subscribed to
+    webhooks:    [WebhookSchema]
   },
 
   createdAt: { type: Date, default: Date.now }
