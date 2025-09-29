@@ -2,6 +2,14 @@ const express = require("express");
 const axios = require("axios");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const User = require("../models/user");
+
+const TicketData = require("../models/TicketData");
+const Ticket = require("../models/Ticket");
+const IntentCategory = require("../models/IntentCategory");
+const { classifyTicketWithGroq } = require("../utils/classifier");
+const { classifySpam } = require("../utils/spamClassifier");
+
+
 // const requestJira =require("@forge/bridge");
 
 const router = express.Router();
@@ -69,7 +77,7 @@ router.post('/jira/webhook/register', isAuthenticated, async (req, res) => {
     const createRes = await axios.post(
       `https://api.atlassian.com/ex/jira/${user.jira.cloudId}/rest/api/3/webhook`,
       {
-        url: 'https://webhook.site/722824e2-6364-4a2e-b547-16dde298cfa9',
+        url: `${process.env.BASE_URL}/api/jira/webhook/${user.jira.cloudId}`,
         webhooks: [
           {
             name: `Webhook for ${projectKey}`,
@@ -135,26 +143,82 @@ router.post('/jira/webhook/register', isAuthenticated, async (req, res) => {
 
 
 // Step 4: Webhook receiver
-router.post("/webhook", async (req, res) => {
+// router.post("/webhook", async (req, res) => {
+//   console.log("Webhook payload:", req.body);
+//     try{
+//         const { issue } = req.body.issue_event_type_name ? req.body : {};
+//         // const cloudId = req.body.cloudId;
+
+//         // const user = await User.findOne({ "jira.cloudId": cloudId });
+
+//         // if (user) {/
+//             // console.log(`🔔 New issue for ${user.email}:`, issue?.key);
+//             // TODO: Save to TicketData / Ticket model
+//         // }
+
+//         res.status(200).send("ok");
+//     }
+//     catch(err){
+//         console.log("error ",err.response);
+//         res.status(500).send("❌ Webhook registration failed");
+
+//     }
+// });
+
+
+// routes/webhook.
+
+
+router.post("/webhook/:cloudId", async (req, res) => {
   console.log("Webhook payload:", req.body);
-    try{
-        const { issue } = req.body.issue_event_type_name ? req.body : {};
-        // const cloudId = req.body.cloudId;
 
-        // const user = await User.findOne({ "jira.cloudId": cloudId });
+  const cloudId = req.params.cloudId;
+  const { issue } = req.body;
 
-        // if (user) {/
-            // console.log(`🔔 New issue for ${user.email}:`, issue?.key);
-            // TODO: Save to TicketData / Ticket model
-        // }
+  if (!issue) return res.status(400).send("❌ No issue in webhook payload");
 
-        res.status(200).send("ok");
+  try {
+    const user = await User.findOne({ "jira.cloudId": cloudId });
+    if (!user) return res.status(404).send("❌ User not found");
+
+    const projectId = issue.fields.project.id;
+    const projectKey = issue.fields.project.key;
+
+    // Find or create TicketData
+    const ticketData = await TicketData.findOneAndUpdate(
+      { userId: user._id, toolName: "Jira", projectId, source: "webhook" },
+      {
+        $setOnInsert: {
+          userId: user._id,
+          toolName: "Jira",
+          projectId,
+          projectKey,
+          source: "webhook",
+          filetype: "json",
+          status: "fetched",
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    // Save the ticket (unclassified)
+    let ticket = await Ticket.findOne({ userId: user._id, toolName: "Jira", externalId: issue.key });
+    if (!ticket) {
+      ticket = await Ticket.create({
+        userId: user._id,
+        ticketDataId: ticketData._id,
+        externalId: issue.key,
+        toolName: "Jira",
+        text: issue.fields?.description || issue.fields?.summary || "",
+        status: "new", // mark as unclassified
+      });
     }
-    catch(err){
-        console.log("error ",err.response);
-        res.status(500).send("❌ Webhook registration failed");
 
-    }
+    res.status(200).json({ message: "Ticket saved (unclassified)", ticket });
+  } catch (err) {
+    console.error("Webhook error:", err);
+    res.status(500).send("❌ Webhook processing failed");
+  }
 });
 
 module.exports = router;

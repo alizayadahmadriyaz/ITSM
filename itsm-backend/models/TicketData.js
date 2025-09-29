@@ -4,9 +4,11 @@ const ticketDataSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   toolName: { type: String, enum: ["Zendesk", "Jira", "ServiceNow"] },
   projectId: { type: String },
+  projectKey: { type: String },
   queueId: { type: String },
-  s3Key: { type: String },       // raw JSON stored in S3
-  filetype:{type: String,require:true},
+  s3Key: { type: String },
+  filetype: { type: String, required: true },
+  source: { type: String, enum: ["upload", "webhook"], default: "upload" }, // ✅ must exist
   status: { type: String, enum: ["uploaded", "fetched"], default: "fetched" },
   createdAt: { type: Date, default: Date.now }
 });

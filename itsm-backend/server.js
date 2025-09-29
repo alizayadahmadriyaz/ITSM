@@ -1,9 +1,11 @@
 require("dotenv").config();
 const express = require("express");
+const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const cors = require("cors");
 const passport = require("passport");
+const serverless = require("serverless-http");
 require("./config/passport"); // your existing Google OAuth (session-based)
 
 const isAuthenticated = require("./middlewares/isAuthenticated");
@@ -20,6 +22,7 @@ const testing=require("./routes/testing")
 const doc_upload=require("./routes/processDoc.routes")
 const dashboard=require("./routes/dashboard")
 const webhk_jira=require("./routes/webhook_jira")
+const webhk_classify=require("./routes/webhook_intent_classify")
 // const webhk=require("./routes/listner")
 
 const app = express();
@@ -65,9 +68,17 @@ app.use("/api/testing",testing)
 app.use("/api/upload_doc",isAuthenticated,doc_upload)
 app.use("/api/dashboard",isAuthenticated,dashboard)
 app.use("/api/jira", webhk_jira);
+app.use("/api/webhok/classify",webhk_classify);
 // db + start
+
+const ssm = new SSMClient({ region: "ap-south-1" });
+
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI,
+    {useNewUrlParser: true,
+    useUnifiedTopology: true
+  }
+  )
   .then(() => {
     console.log("✅ MongoDB connected");
     const port = process.env.PORT || 5000;
@@ -76,3 +87,5 @@ mongoose
     );
   })
   .catch((e) => console.error("Mongo error:", e));
+
+  module.exports.handler = serverless(app);

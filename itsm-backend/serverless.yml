@@ -1,0 +1,22 @@
+service: itsm-backend
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  environment:
+    NODE_ENV: production
+    BASE_URL: https://your-domain.com   # change to your API Gateway domain or custom domain
+    GOOGLE_CLIENT_ID: ${ssm:/itsm/GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${ssm:/itsm/GOOGLE_CLIENT_SECRET}
+    JIRA_CLIENT_ID: ${ssm:/itsm/JIRA_CLIENT_ID}
+    JIRA_CLIENT_SECRET: ${ssm:/itsm/JIRA_CLIENT_SECRET}
+    MONGO_URI: ${ssm:/itsm/MONGO_URI}
+
+functions:
+  app:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
