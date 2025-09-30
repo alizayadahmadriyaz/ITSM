@@ -1,0 +1,42 @@
+[
+ {
+  "Description": "AWS",
+  "StartLine": 22,
+  "EndLine": 22,
+  "StartColumn": 182,
+  "EndColumn": 201,
+  "Match": "AKIAVCODYLSA53PQK4ZA",
+  "Secret": "AKIAVCODYLSA53PQK4ZA",
+  "File": "README.md",
+  "SymlinkFile": "",
+  "Commit": "bc11261733d9f7b62393ddcb2d67874569b2fe71",
+  "Entropy": 3.821928,
+  "Author": "ali zayad",
+  "Email": "alizayad57@gmail.com",
+  "Date": "2025-09-01T19:41:51Z",
+  "Message": "added flow upload with or without doc updated",
+  "Tags": [],
+  "RuleID": "aws-access-token",
+  "Fingerprint": "bc11261733d9f7b62393ddcb2d67874569b2fe71:README.md:aws-access-token:22"
+ },
+ {
+  "Description": "AWS",
+  "StartLine": 22,
+  "EndLine": 22,
+  "StartColumn": 182,
+  "EndColumn": 201,
+  "Match": "AKIAVCODYLSA53PQK4ZA",
+  "Secret": "AKIAVCODYLSA53PQK4ZA",
+  "File": "README.md",
+  "SymlinkFile": "",
+  "Commit": "dca6ac0f26f1887d8e759bb1d5d42fa1dad01ca2",
+  "Entropy": 3.821928,
+  "Author": "ali zayad",
+  "Email": "alizayad57@gmail.com",
+  "Date": "2025-09-01T19:41:51Z",
+  "Message": "added flow upload with or without doc updated",
+  "Tags": [],
+  "RuleID": "aws-access-token",
+  "Fingerprint": "dca6ac0f26f1887d8e759bb1d5d42fa1dad01ca2:README.md:aws-access-token:22"
+ }
+]
